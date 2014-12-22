@@ -50,7 +50,7 @@ class Ans(object):
         self.ansLabel = ansLabel
 
 class CalculatorInterface(Frame):
-    def __init__(self, master):
+    def __init__(self, master, rows=3, columns=3):
         Frame.__init__(self, master)
         self["bg"] = "#111"
         c2 = "#1a1a1a"
@@ -60,8 +60,8 @@ class CalculatorInterface(Frame):
 
         crow = 0
         ccol = 0
-        maxcol = 3 - 1 # starting at index 0
-        maxrow = 3 - 1 # starting at index 0
+        maxcol = columns - 1 # starting at index 0
+        maxrow = rows - 1 # starting at index 0
         for _ in range((maxcol + 1) * (maxrow + 1) - 1):
             if (ccol + 1 > maxcol):
                 crow += 1
@@ -74,12 +74,6 @@ class CalculatorInterface(Frame):
                           pady=(5 if (crow > 0 and crow < maxrow) else 0))
             ans = Ans(ansVar, ansLabel)
             self.anss.append(ans)
-        # self.ans1 = StringVar()
-        # self.ans1L = Label(self, textvariable=self.ans1, font="Arial 13", bg=c2, width=24, justify=CENTER)
-        # self.ans1L.grid(row=0, column=1, sticky=W, padx=10)
-        # self.ans2 = StringVar()
-        # self.ans2L = Label(self, textvariable=self.ans2, font="Arial 13", bg=c2, width=24, justify=CENTER)
-        # self.ans2L.grid(row=0, column=2, sticky=W)
 
         self.input1.bind("<Return>", self.submit1)
         self.newColor()
@@ -116,10 +110,7 @@ class CalculatorInterface(Frame):
             prev = (ans.ansLabel["fg"], ans.ansVar.get())
             ans.ansLabel.config(fg=use[0])
             ans.ansVar.set(use[1])
-        #self.ans2.set(self.ans1.get())
-        #self.ans2L.config(fg=self.ans1L["fg"])
-        #self.ans1.set(text)
-        #self.ans1L.config(fg=self.input1["fg"])
+
         self.input1.delete(0, END)
         self.newColor()
 
