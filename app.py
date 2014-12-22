@@ -6,10 +6,25 @@ class App(Tk):
         Tk.__init__(self)
         self.floater = FloatingWindow(self)
 
+def stitch(args):
+    res = str.join(" ", [numFormat(arg) for arg in args])
+    if len(args) == 2:
+        res += ", diff=" + numFormat(abs(args[1] - args[0]))
+    return res
+
+def writeEnds(*args):
+    return "ends " + stitch(args)
+
+def writeStarts(*args):
+    return "starts " + stitch(args)
+
 frm = "{:.2f}"
+def numFormat(num):
+    return frm.format(num).rstrip("0").rstrip(".")
+
 # Serato does not have a zero-th measure
 def noZero(num):
-    return frm.format(num if num > 0 else num - 1).rstrip("0").rstrip(".")
+    return numFormat(num if num > 0 else num - 1)
 
 # 3 number pairs 10 measures at a time
 def lineUp(a, b, inca=10, incb=10):
@@ -31,16 +46,18 @@ def lineUp2to1(a, b, inc=10):
 evalFns = {
     "/-11": lineUp,
     "/-12": lineUp1to2,
-    "/-21": lineUp2to1
+    "/-21": lineUp2to1,
+    "/+1": writeEnds,
+    "/+0": writeStarts,
 }
 
-colors = "fc6"
+colors = "fcb6"
 colors_len = len(colors)-1
 def getColor():
     res = ""
     while len(res) < 6:
-        char = colors[randint(0, colors_len)]
-        res += char
+        colornum = randint(0, colors_len)
+        res += colors[colornum] + colors[colors_len - colornum]
     return "#" + res
 
 # ---------------------------------------------
@@ -91,12 +108,12 @@ class CalculatorInterface(Frame):
     def submit1(self, event):
         text = self.input1.get()
         # /-11 56 4 -> lineUp(56, 4)
-        #try:
-        sp = text.split("++")
-        if sp[0] in evalFns:
-            text = evalFns[sp[0]](*[float(a) for a in sp[1::]])
-        #except:
-        #    pass
+        try:
+            sp = text.split("++")
+            if sp[0] in evalFns:
+                text = evalFns[sp[0]](*[float(a) for a in sp[1::]])
+        except:
+            return "break"
 
         try:
             evald = str(eval(text, {"__builtins__": {}}))
