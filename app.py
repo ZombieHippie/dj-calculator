@@ -68,7 +68,7 @@ class CalculatorInterface(Frame):
             else:
                 ccol += 1
             ansVar = StringVar()
-            ansLabel = Label(self, textvariable=ansVar, font="Arial 12", bg=c2, width=29, justify=CENTER)
+            ansLabel = Label(self, textvariable=ansVar, font="Arial 15", bg=c2, width=24, justify=CENTER)
             ansLabel.grid(row=crow, column=ccol, padx=(5 if (ccol > 0 and ccol < maxcol) else 0),\
                           pady=(5 if (crow > 0 and crow < maxrow) else 0))
             ans = Ans(ansVar, ansLabel)
@@ -104,9 +104,9 @@ class CalculatorInterface(Frame):
                 return "break"
 
             try:
-                evald = str(eval(text, {"__builtins__": {}}))
+                evald = eval(text, {"__builtins__": {}})
                 if evald != text:
-                    text = text + " = " + evald
+                    text = text + " = " + numFormat(evald)
             except:
                 pass
             break
