@@ -1,22 +1,10 @@
 from tkinter import *
-from random import randint
+from random import shuffle
 
 class App(Tk):
     def __init__(self):
         Tk.__init__(self)
         self.floater = FloatingWindow(self)
-
-def stitch(args):
-    res = str.join(" ", [numFormat(arg) for arg in args])
-    if len(args) == 2:
-        res += ", diff=" + numFormat(abs(args[1] - args[0]))
-    return res
-
-def writeEnds(*args):
-    return "ends " + stitch(args)
-
-def writeStarts(*args):
-    return "starts " + stitch(args)
 
 frm = "{:.2f}"
 def numFormat(num):
@@ -31,8 +19,8 @@ def lineUp(a, b, inca=10, incb=10):
     res = ""
     for x in range(1, 4):
         if x > 1:
-            res = " - " + res
-        res = noZero(a - inca * x) + " " + noZero(b - incb * x) + res
+            res = "     " + res
+        res = noZero(a - inca * x) + ", " + noZero(b - incb * x) + res
     return res
 
 # 3 number pairs 10 measures at a time
@@ -46,19 +34,13 @@ def lineUp2to1(a, b, inc=10):
 evalFns = {
     "/-11": lineUp,
     "/-12": lineUp1to2,
-    "/-21": lineUp2to1,
-    "/+1": writeEnds,
-    "/+0": writeStarts,
+    "/-21": lineUp2to1
 }
 
-colors = "fcb6"
-colors_len = len(colors)-1
+colors = list("fdb970")
 def getColor():
-    res = ""
-    while len(res) < 6:
-        colornum = randint(0, colors_len)
-        res += colors[colornum] + colors[colors_len - colornum]
-    return "#" + res
+    shuffle(colors)
+    return "#" + str.join("", colors)
 
 # ---------------------------------------------
 class Ans(object):
@@ -71,7 +53,7 @@ class CalculatorInterface(Frame):
         Frame.__init__(self, master)
         self["bg"] = "#111"
         c2 = "#1a1a1a"
-        self.input1 = Entry(self, insertofftime=0, highlightbackground=c2, font="Arial 13", bd=0, bg=c2, highlightthickness=2, justify=CENTER, width=24)
+        self.input1 = Entry(self, insertofftime=0, highlightbackground=c2, font="Arial 15", bd=0, bg=c2, highlightthickness=2, justify=CENTER, width=24)
         self.input1.grid(row=0, sticky=W)
         self.anss = list()
 
@@ -86,7 +68,7 @@ class CalculatorInterface(Frame):
             else:
                 ccol += 1
             ansVar = StringVar()
-            ansLabel = Label(self, textvariable=ansVar, font="Arial 13", bg=c2, width=24, justify=CENTER)
+            ansLabel = Label(self, textvariable=ansVar, font="Arial 12", bg=c2, width=29, justify=CENTER)
             ansLabel.grid(row=crow, column=ccol, padx=(5 if (ccol > 0 and ccol < maxcol) else 0),\
                           pady=(5 if (crow > 0 and crow < maxrow) else 0))
             ans = Ans(ansVar, ansLabel)
@@ -107,20 +89,28 @@ class CalculatorInterface(Frame):
 
     def submit1(self, event):
         text = self.input1.get()
-        # /-11 56 4 -> lineUp(56, 4)
-        try:
-            sp = text.split("++")
-            if sp[0] in evalFns:
-                text = evalFns[sp[0]](*[float(a) for a in sp[1::]])
-        except:
-            return "break"
+        # /-11++56++4 -> lineUp(56, 4)
+        while True:
+            try:
+                sp = text.split("++")
+                if len(sp) == 2:
+                    text = lineUp(*[float(a) for a in sp])
+                    break
+                elif len(sp) == 3:
+                    if sp[0] in evalFns:
+                        text = evalFns[sp[0]](*[float(a) for a in sp[1::]])
+                        break
+            except:
+                return "break"
 
-        try:
-            evald = str(eval(text, {"__builtins__": {}}))
-            if evald != text:
-                text = text + " = " + evald
-        except:
-            pass
+            try:
+                evald = str(eval(text, {"__builtins__": {}}))
+                if evald != text:
+                    text = text + " = " + evald
+            except:
+                pass
+            break
+
         prev = (self.input1["fg"], text)
         for ans in self.anss:
             use = prev
@@ -142,7 +132,7 @@ class FloatingWindow(Toplevel):
         self.attributes( '-topmost', 1 )
         self["bg"] = "#111"
 
-        self.calcInter = CalculatorInterface(self)
+        self.calcInter = CalculatorInterface(self, rows=3, columns=1)
         self.calcInter.grid(row=0, column=0, padx=5, pady=5)
 
         self.bind("<ButtonPress-1>", self.StartMove)
